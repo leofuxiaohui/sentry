@@ -842,7 +842,7 @@ type GroupActivityData = {
   text?: string;
 };
 
-type GroupActivity = {
+export type GroupActivity = {
   data: GroupActivityData;
   dateCreated: string;
   id: string;
