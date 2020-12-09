@@ -6,34 +6,55 @@ import * as queryString from 'query-string';
 
 import {addSuccessMessage} from 'app/actionCreators/indicator';
 import Button from 'app/components/button';
+import AbstractExternalIssueForm from 'app/components/externalIssues/abstractExternalIssueForm';
 import ExternalLink from 'app/components/links/externalLink';
 import {IconSettings} from 'app/icons';
 import {t, tct} from 'app/locale';
 import space from 'app/styles/space';
-import {IssueConfigField} from 'app/types';
+import {IssueConfigField, Organization} from 'app/types';
 import {IssueAlertRuleAction, IssueAlertRuleCondition} from 'app/types/alerts';
-import FieldFromConfig from 'app/views/settings/components/forms/fieldFromConfig';
+import AsyncView from 'app/views/asyncView';
 import Form from 'app/views/settings/components/forms/form';
 import {FormField} from 'app/views/settings/projectAlerts/issueEditor/ruleNode';
 
 type Props = {
   formFields: {[key: string]: any};
+  index: number;
   instance: IssueAlertRuleAction | IssueAlertRuleCondition;
   link?: string;
-  ticketType?: string;
-  onSubmitAction: (data: {[key: string]: string}) => void;
   onPropertyChange: (rowIndex: number, name: string, value: string) => void;
-  index: number;
-};
+  onSubmitAction: (data: {[key: string]: string}) => void;
+  organization: Organization;
+  ticketType?: string;
+} & AbstractExternalIssueForm['props'];
 
 type State = {
   showModal: boolean;
-};
+} & AbstractExternalIssueForm['state'];
 
-class TicketRuleForm extends React.Component<Props, State> {
-  state = {
-    showModal: false,
-  };
+class TicketRuleForm extends AbstractExternalIssueForm<Props, State> {
+  constructor(props: Props, context: any) {
+    super(props, context);
+  }
+
+  getDefaultState(): State {
+    return {
+      ...super.getDefaultState(),
+      showModal: false,
+      action: 'create',
+      dynamicFieldValues: {},
+    };
+  }
+
+  getEndpoints(): ReturnType<AsyncView['getEndpoints']> {
+    const {instance, organization} = this.props;
+    return [
+      [
+        'integrationDetails',
+        `/organizations/${organization.slug}/integrations/${instance.integration}/?action=create`,
+      ],
+    ];
+  }
 
   openModal = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -48,10 +69,6 @@ class TicketRuleForm extends React.Component<Props, State> {
     });
   };
 
-  onCancel = () => {
-    this.closeModal();
-  };
-
   getNames = (): string[] => {
     const names: string[] = [];
     for (const name in this.props.formFields) {
@@ -60,6 +77,11 @@ class TicketRuleForm extends React.Component<Props, State> {
       }
     }
     return names;
+  };
+
+  getEndPointString = () => {
+    const {instance, organization} = this.props;
+    return `/organizations/${organization.slug}/integrations/${instance.integration}/`;
   };
 
   cleanData = (data: {
@@ -141,6 +163,16 @@ class TicketRuleForm extends React.Component<Props, State> {
     {trailing: true}
   );
 
+  getFormProps = (): Form['props'] => {
+    return {
+      ...this.getDefaultFormProps(),
+      cancelLabel: t('Close'),
+      onCancel: this.closeModal,
+      onSubmit: this.onFormSubmit,
+      submitLabel: t('Apply Changes'),
+    };
+  };
+
   getFieldProps = (field: IssueConfigField) =>
     field.url
       ? {
@@ -173,25 +205,25 @@ class TicketRuleForm extends React.Component<Props, State> {
     formFields.unshift(title);
   };
 
-  render() {
+  renderBodyText = () => {
     const {ticketType, link} = this.props;
-
-    const text = t(
-      'When this alert is triggered %s will be created with the following fields. ',
-      ticketType
+    return (
+      <BodyText>
+        {t(
+          'When this alert is triggered a %s will be created with the following fields. ',
+          ticketType
+        )}
+        {tct("It'll also [linkToDocs] with the new Sentry Issue.", {
+          linkToDocs: <ExternalLink href={link}>{t('stay in sync')}</ExternalLink>,
+        })}
+      </BodyText>
     );
-    const submitLabel = t('Apply Changes');
-    const cancelLabel = t('Close');
-    const formFields = Object.values(this.props.formFields);
-    this.addFields(formFields);
-    const initialData = this.props.instance || {};
-    formFields.forEach((field: FormField) => {
-      // passing an empty array breaks multi select
-      // TODO(jess): figure out why this is breaking and fix
-      if (!initialData.hasOwnProperty(field.name)) {
-        initialData[field.name] = field.multiple ? '' : field.default;
-      }
-    });
+  };
+
+  render() {
+    const {formFields, instance} = this.props;
+    const cleanFormFields = Object.values(formFields);
+    this.addFields(cleanFormFields);
     return (
       <React.Fragment>
         <Button
@@ -208,38 +240,7 @@ class TicketRuleForm extends React.Component<Props, State> {
           enforceFocus={false}
           backdrop="static"
         >
-          <Modal.Header closeButton>
-            <Modal.Title>Issue Link Settings</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <BodyText>
-              {text}
-              {tct("It'll also [linkToDocs] with the new Sentry Issue.", {
-                linkToDocs: <ExternalLink href={link}>{t('stay in sync')}</ExternalLink>,
-              })}
-            </BodyText>
-            <Form
-              onSubmit={this.onFormSubmit}
-              initialData={initialData}
-              submitLabel={submitLabel}
-              cancelLabel={cancelLabel}
-              footerClass="modal-footer"
-              onCancel={this.onCancel}
-            >
-              {formFields
-                .filter((field: FormField) => field.hasOwnProperty('name'))
-                .map((field: IssueConfigField) => (
-                  <FieldFromConfig
-                    key={`${field.name}-${field.default}-${field.required}`}
-                    field={field}
-                    inline={false}
-                    stacked
-                    flexibleControlStateSize
-                    {...this.getFieldProps(field)}
-                  />
-                ))}
-            </Form>
-          </Modal.Body>
+          {this.renderForm(cleanFormFields, instance)}
         </Modal>
       </React.Fragment>
     );

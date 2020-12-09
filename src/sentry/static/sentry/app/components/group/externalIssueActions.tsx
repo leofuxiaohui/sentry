@@ -6,7 +6,6 @@ import {addErrorMessage, addSuccessMessage} from 'app/actionCreators/indicator';
 import AsyncComponent from 'app/components/asyncComponent';
 import ExternalIssueForm from 'app/components/group/externalIssueForm';
 import IssueSyncListElement from 'app/components/issueSyncListElement';
-import NavTabs from 'app/components/navTabs';
 import {t} from 'app/locale';
 import overflowEllipsis from 'app/styles/overflowEllipsis';
 import space from 'app/styles/space';
@@ -107,10 +106,6 @@ class ExternalIssueActions extends AsyncComponent<Props, State> {
     });
   };
 
-  handleClick = (action: 'create' | 'link') => {
-    this.setState({action});
-  };
-
   linkIssueSuccess = (onSuccess: () => void) => {
     this.props.onChange(() => onSuccess());
     this.closeModal();
@@ -172,30 +167,11 @@ class ExternalIssueActions extends AsyncComponent<Props, State> {
             enforceFocus={false}
             backdrop="static"
           >
-            <Modal.Header closeButton>
-              <Modal.Title>{`${selectedIntegration.provider.name} Issue`}</Modal.Title>
-            </Modal.Header>
-            <NavTabs underlined>
-              <li className={action === 'create' ? 'active' : ''}>
-                <a onClick={() => this.handleClick('create')}>{t('Create')}</a>
-              </li>
-              <li className={action === 'link' ? 'active' : ''}>
-                <a onClick={() => this.handleClick('link')}>{t('Link')}</a>
-              </li>
-            </NavTabs>
-            <Modal.Body>
-              {action && (
-                <ExternalIssueForm
-                  // need the key here so React will re-render
-                  // with a new action prop
-                  key={action}
-                  group={this.props.group}
-                  integration={selectedIntegration}
-                  action={action}
-                  onSubmitSuccess={(_, onSuccess) => this.linkIssueSuccess(onSuccess)}
-                />
-              )}
-            </Modal.Body>
+            <ExternalIssueForm
+              group={this.props.group}
+              integration={selectedIntegration}
+              onSubmitSuccess={(_, onSuccess) => this.linkIssueSuccess(onSuccess)}
+            />
           </Modal>
         )}
       </React.Fragment>
