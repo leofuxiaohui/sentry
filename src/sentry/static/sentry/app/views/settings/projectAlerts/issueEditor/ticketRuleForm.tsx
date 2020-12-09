@@ -18,9 +18,9 @@ import {FormField} from 'app/views/settings/projectAlerts/issueEditor/ruleNode';
 
 type Props = {
   formFields: {[key: string]: any};
+  instance: IssueAlertRuleAction | IssueAlertRuleCondition;
   link?: string;
   ticketType?: string;
-  instance?: IssueAlertRuleAction | IssueAlertRuleCondition;
   onSubmitAction: (data: {[key: string]: string}) => void;
   onPropertyChange: (rowIndex: number, name: string, value: string) => void;
   index: number;

@@ -31,7 +31,7 @@ export type FormField = {
 type Props = {
   index: number;
   node?: IssueAlertRuleActionTemplate | IssueAlertRuleConditionTemplate | null;
-  data?: IssueAlertRuleAction | IssueAlertRuleCondition;
+  data: IssueAlertRuleAction | IssueAlertRuleCondition;
   project: Project;
   organization: Organization;
   disabled: boolean;
@@ -286,7 +286,7 @@ class RuleNode extends React.Component<Props> {
   };
 
   render() {
-    const {data, disabled, node} = this.props;
+    const {data, disabled, index, node, onPropertyChange, organization} = this.props;
     const ticketRule = node?.hasOwnProperty('actionType');
     return (
       <RuleRowContainer>
@@ -300,9 +300,10 @@ class RuleNode extends React.Component<Props> {
                 link={node.link}
                 ticketType={node.ticketType}
                 instance={data}
-                index={this.props.index}
+                index={index}
                 onSubmitAction={this.updateParent}
-                onPropertyChange={this.props.onPropertyChange}
+                onPropertyChange={onPropertyChange}
+                organization={organization}
               />
             )}
           </Rule>
