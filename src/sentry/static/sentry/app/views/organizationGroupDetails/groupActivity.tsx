@@ -138,8 +138,8 @@ class GroupActivity extends React.Component<Props, State> {
 
     return (
       <React.Fragment>
-        {(reprocessingStatus === ReprocessingStatus.FULLY_REPROCESSED ||
-          reprocessingStatus === ReprocessingStatus.PARTIALLY_REPROCESSED) && (
+        {(reprocessingStatus === ReprocessingStatus.REPROCESSED_AND_HASNT_EVENT ||
+          reprocessingStatus === ReprocessingStatus.REPROCESSED_AND_HAS_EVENT) && (
           <StyledReprocessedBox
             reprocessActivity={mostRecentActivity}
             groupCount={groupCount}

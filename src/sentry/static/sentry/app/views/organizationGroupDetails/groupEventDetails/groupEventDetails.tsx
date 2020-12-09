@@ -255,8 +255,9 @@ class GroupEventDetails extends React.Component<Props, State> {
                   />
                 )}
                 {hasReprocessingV2Feature &&
-                  (reprocessStatus === ReprocessingStatus.FULLY_REPROCESSED ||
-                    reprocessStatus === ReprocessingStatus.PARTIALLY_REPROCESSED) && (
+                  (reprocessStatus === ReprocessingStatus.REPROCESSED_AND_HAS_EVENT ||
+                    reprocessStatus ===
+                      ReprocessingStatus.REPROCESSED_AND_HASNT_EVENT) && (
                     <ReprocessedBox
                       reprocessActivity={mostRecentActivity}
                       groupCount={groupCount}
