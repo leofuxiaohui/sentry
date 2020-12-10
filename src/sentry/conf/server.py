@@ -929,10 +929,10 @@ SENTRY_FEATURES = {
     "organizations:usage-stats-graph": False,
     # Enable inbox support in the issue stream
     "organizations:inbox": False,
-    # Enable "owner"/"suggested assignee" features.
-    "organizations:workflow-owners": False,
     # Return unhandled information on the issue level
     "organizations:unhandled-issue-flag": False,
+    # Enable "owner"/"suggested assignee" features.
+    "organizations:workflow-owners": False,
     # Adds additional filters and a new section to issue alert rules.
     "projects:alert-filters": True,
     # Enable functionality to specify custom inbound filters on events.
@@ -960,6 +960,8 @@ SENTRY_FEATURES = {
     "projects:servicehooks": False,
     # Use Kafka (instead of Celery) for ingestion pipeline.
     "projects:kafka-ingest": False,
+    # Enable "owner"/"suggested assignee" features in ingestion (suspect commit calculation).
+    "projects:workflow-owners-ingestion": False,
     # Don't add feature defaults down here! Please add them in their associated
     # group sorted alphabetically.
 }
@@ -1665,18 +1667,15 @@ SENTRY_DEFAULT_INTEGRATIONS = (
 )
 
 
-def get_sentry_sdk_config():
-    return {
-        "release": sentry.__build__,
-        "environment": ENVIRONMENT,
-        "in_app_include": ["sentry", "sentry_plugins"],
-        "_experiments": {"smart_transaction_trimming": True},
-        "debug": True,
-        "send_default_pii": True,
-    }
-
-
-SENTRY_SDK_CONFIG = get_sentry_sdk_config()
+SENTRY_SDK_CONFIG = {
+    "release": sentry.__build__,
+    "environment": ENVIRONMENT,
+    "in_app_include": ["sentry", "sentry_plugins"],
+    "_experiments": {"smart_transaction_trimming": True},
+    "debug": True,
+    "send_default_pii": True,
+    "auto_enabling_integrations": False,
+}
 
 # Callable to bind additional context for the Sentry SDK
 #
